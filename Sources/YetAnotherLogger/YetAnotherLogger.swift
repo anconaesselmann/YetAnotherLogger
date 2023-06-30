@@ -57,6 +57,10 @@ public extension Logging {
         Logger.shared.log(.critical(message: message), sender: self)
     }
 
+    func critical(_ error: Error) {
+        Logger.shared.log(.critical(message: error.localizedDescription), sender: self)
+    }
+
     func temp(_ message: String) {
         Logger.shared.log(.temp(message: message), sender: self)
     }
