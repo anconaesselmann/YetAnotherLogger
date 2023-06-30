@@ -84,3 +84,17 @@ public class Logger {
         }
     }
 }
+
+public protocol Loggable {
+    var logDescription: String { get }
+}
+
+public extension Logging {
+    func debug(_ loggable: Loggable) {
+        self.debug(loggable.logDescription)
+    }
+
+    func debug(_ loggables: Loggable...) {
+        self.debug(loggables.map{ $0.logDescription }.joined(separator: ", "))
+    }
+}
