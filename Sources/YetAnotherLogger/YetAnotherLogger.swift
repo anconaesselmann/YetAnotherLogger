@@ -4,19 +4,21 @@
 import Foundation
 
 public enum LoggingPriority: CustomStringConvertible {
+    case log(message: String)
     case debug(message: String)
     case critical(message: String)
     case temp(message: String)
 
     public var description: String {
         switch self {
-        case .critical(message: let message), .debug(message: let message), .temp(message: let message):
+        case .critical(message: let message), .debug(message: let message), .temp(message: let message), .log(message: let message):
             return message
         }
     }
 
     public var priority: String {
         switch self {
+        case .log: return "LOG"
         case .debug: return "DEBUG"
         case .critical: return "CRITICAL"
         case .temp: return "TEMP"
@@ -25,6 +27,7 @@ public enum LoggingPriority: CustomStringConvertible {
 
     public var emoji: String {
         switch self {
+        case .log: return "📜"
         case .debug: return "🪲"
         case .critical: return "‼️"
         case .temp: return "🤚"
@@ -46,7 +49,7 @@ public extension Logging {
     }
 
     func log(_ message: String) {
-        Logger.shared.log(.debug(message: message), sender: self)
+        Logger.shared.log(.log(message: message), sender: self)
     }
 
     func debug(_ message: String) {
@@ -71,9 +74,18 @@ public class Logger {
     public var showEmoji = true
     public var assert = false
 
+    public enum Priorities {
+        case log, debug, critical, temp
+    }
+
+    public var suppressed: Set<Priorities> = []
+
     public static let shared = Logger()
 
     public func log(_ event: LoggingPriority, sender: Logging? = nil) {
+        guard !suppressed.contains(event.loggerPriority) else {
+            return
+        }
         let sender = sender?.name ?? "Unknown"
         let emoji = showEmoji ? "\(event.emoji) - " : ""
         let message = ("\(emoji)\(event.priority) - \(sender): \(event.description)")
@@ -81,6 +93,17 @@ public class Logger {
             assertionFailure(message)
         } else {
             print(message)
+        }
+    }
+}
+
+public extension LoggingPriority {
+    var loggerPriority: Logger.Priorities {
+        switch self {
+        case .log: return .log
+        case .critical: return .critical
+        case .debug: return .debug
+        case .temp: return .temp
         }
     }
 }
